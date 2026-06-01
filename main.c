@@ -113,10 +113,25 @@ int main(void)
   Calibration_SetADC(&hadc1);
 
   // Run the full calibration stage
+do {
   Stage_Calibration_Run();
+  Calibration_Compute(); // Compute 6 axis measurement
 
-  // Calculate offset and scale from the 6 measurements
-  Calibration_Compute();
+	  if (!calib.is_valid) // If calibration is invalid due to incorrect device orientation
+	  {
+		  ST7789_Fill_Color(BLACK);
+		  Draw_CentredString(70,  "Calibration Failed", Font_11x18, RED);
+		  Draw_CentredString(95,  "Check Orientation:", Font_11x18, WHITE);
+	
+		  if (calib.fail_x) Draw_CentredString(120, "X Axis Invalid", Font_11x18, YELLOW);
+		  if (calib.fail_y) Draw_CentredString(145, "Y Axis Invalid", Font_11x18, YELLOW);
+		  if (calib.fail_z) Draw_CentredString(170, "Z Axis Invalid", Font_11x18, YELLOW);
+	
+		  Draw_CentredString(200, "Press to Retry", Font_11x18, WHITE);
+		  Calibration_WaitForButton();
+	  }
+    } while (!calib.is_valid);
+
 
   // Show the main tracker screen
   Display_Init();
